@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PASS_GOD | Security Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&family=Inter:wght@400;900&display=swap');
+        
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; transition: background 0.5s ease; overflow: hidden; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        input {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus { border-color: #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.2); }
+
+        /* Audio Control Button */
+        #mute-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+            cursor: pointer;
+            border: 1px solid white;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        #mute-toggle:hover { opacity: 1; }
+
+        #matrix-canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0; transition: opacity 2s; }
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center">
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <audio id="bgm" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="max-w-md w-full p-8 text-center">
+        <header class="mb-12">
+            <h1 id="main-title" class="text-5xl font-900 tracking-tighter italic mb-2">PASS_<span class="text-blue-500">CRACK</span></h1>
+            <p id="sub-title" class="text-[10px] mono opacity-40 uppercase tracking-widest">Entropy Analysis Tool v2.0</p>
+        </header>
+
+        <div class="relative mb-8">
+            <input type="text" id="pass-input" placeholder="ENTER SECRET..." class="w-full py-6 px-8 rounded-2xl text-2xl font-bold tracking-widest text-center">
+            <div id="security-level" class="mt-4 h-1 w-0 bg-red-500 transition-all duration-500 rounded-full"></div>
+        </div>
+
+        <div id="stats" class="grid grid-cols-2 gap-4 opacity-0 transition-opacity duration-500">
+            <div class="bg-white/5 p-4 rounded-xl">
+                <p class="text-[10px] opacity-40 uppercase">Crack Time</p>
+                <p id="crack-time" class="text-sm font-bold text-red-500">Instant</p>
+            </div>
+            <div class="bg-white/5 p-4 rounded-xl">
+                <p class="text-[10px] opacity-40 uppercase">Entropy</p>
+                <p id="entropy-bits" class="text-sm font-bold">0 Bits</p>
+            </div>
+        </div>
+
+        <p id="roast-msg" class="mt-8 text-xs italic opacity-60"></p>
+    </div>
+
+    <div id="mute-toggle" onclick="toggleMute()">AUDIO: ON</div>
+
+    <script>
+        const input = document.getElementById('pass-input');
+        const level = document.getElementById('security-level');
+        const stats = document.getElementById('stats');
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        const bgm = document.getElementById('bgm');
+        const muteBtn = document.getElementById('mute-toggle');
+
+        let audioStarted = false;
+
+        input.addEventListener('input', (e) => {
+            // Start Audio on first input
+            if (!audioStarted) {
+                bgm.volume = 0.3;
+                bgm.play();
+                audioStarted = true;
+            }
+
+            const val = e.target.value;
+            if (val.length > 0) stats.style.opacity = "1";
+            else stats.style.opacity = "0";
+
+            let score = 0;
+            if (val.length > 8) score += 20;
+            if (/[A-Z]/.test(val)) score += 20;
+            if (/[0-9]/.test(val)) score += 20;
+            if (/[^A-Za-z0-9]/.test(val)) score += 20;
+            if (val.length > 12) score += 20;
+
+            level.style.width = `${score}%`;
+            
+            if (score < 40) {
+                updateUI("#450a0a", "INSTANT", "red", "My grandma could hack this with a toaster.", false);
+            } else if (score < 80) {
+                updateUI("#0f172a", "2 YEARS", "yellow", "Decent, but a script-kiddie might get lucky.", false);
+            } else {
+                updateUI("#064e3b", "500 CENTURIES", "green", "GOD TIER. Even the NSA is crying.", true);
+            }
+
+            document.getElementById('entropy-bits').innerText = `${val.length * 4} Bits`;
+        });
+
+        function toggleMute() {
+            if (bgm.muted) {
+                bgm.muted = false;
+                muteBtn.innerText = "AUDIO: ON";
+            } else {
+                bgm.muted = true;
+                muteBtn.innerText = "AUDIO: OFF";
+            }
+        }
+
+        function updateUI(bg, time, color, roast, isGod) {
+            document.body.style.background = bg;
+            document.getElementById('crack-time').innerText = time;
+            document.getElementById('crack-time').style.color = color === "green" ? "#10b981" : (color === "yellow" ? "#fbbf24" : "#f43f5e");
+            
+            const colorClass = color === 'green' ? 'bg-emerald-500' : (color === 'yellow' ? 'bg-amber-500' : 'bg-red-500');
+            level.className = `mt-4 h-1 transition-all duration-500 rounded-full ${colorClass}`;
+            
+            document.getElementById('roast-msg').innerText = roast;
+            
+            if (isGod) {
+                canvas.style.opacity = "0.3";
+                document.getElementById('main-title').innerHTML = "PASS_<span class='text-emerald-400'>GOD</span>";
+                startMatrix();
+            } else {
+                canvas.style.opacity = "0";
+                document.getElementById('main-title').innerHTML = "PASS_<span class='text-blue-500'>CRACK</span>";
+            }
+        }
+
+        // Matrix Rain Background
+        let matrixInterval;
+        function startMatrix() {
+            if (matrixInterval) return;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
+            const fontSize = 16;
+            const columns = canvas.width / fontSize;
+            const drops = Array(Math.floor(columns)).fill(1);
+
+            function draw() {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#0F0";
+                ctx.font = fontSize + "px monospace";
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                }
+            }
+            matrixInterval = setInterval(draw, 33);
+        }
+    </script>
+</body>
+</html>
